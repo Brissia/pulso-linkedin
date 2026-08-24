@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pulso LinkedIn — Diagnóstico de tu perfil</title>
+<meta name="description" content="Sube el export de estadísticas de tu perfil de LinkedIn y obtén un score de 0 a 100 con oportunidades concretas de mejora. 100% privado: tus datos no salen de tu navegador.">
+<meta property="og:title" content="Pulso LinkedIn — ¿Qué tan bien rinde tu perfil?">
+<meta property="og:description" content="Diagnóstico gratuito estilo SSI: score sobre 4 pilares e insights accionables a partir de tus propias estadísticas.">
+<meta property="og:type" content="website">
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#F4F7FA; --surface:#FFFFFF; --surface2:#EBF1F7; --ink:#16232E; --ink2:#4A5B6A; --muted:#7A8A98;
+    --line:#D8E1EA; --accent:#0B5CAD; --accent-ink:#FFFFFF; --accent-soft:#E3EEF9;
+    --good:#20713C; --good-soft:#E2F2E7; --warn:#8A5A12; --warn-soft:#F7ECD8; --crit:#A33327; --crit-soft:#F9E4E1;
+    --chart:#0B5CAD; --chart-fill:rgba(11,92,173,.14); --shadow:0 10px 30px rgba(22,35,46,.10);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0C141D; --surface:#131E29; --surface2:#1A2836; --ink:#E7EEF4; --ink2:#A9BAC8; --muted:#7A8B99;
+      --line:#263747; --accent:#6FB1EF; --accent-ink:#0C141D; --accent-soft:#16283C;
+      --good:#6FCB8C; --good-soft:#12301C; --warn:#E4B463; --warn-soft:#33270F; --crit:#F09287; --crit-soft:#3A1712;
+      --chart:#6FB1EF; --chart-fill:rgba(111,177,239,.16); --shadow:0 10px 30px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0C141D; --surface:#131E29; --surface2:#1A2836; --ink:#E7EEF4; --ink2:#A9BAC8; --muted:#7A8B99;
+    --line:#263747; --accent:#6FB1EF; --accent-ink:#0C141D; --accent-soft:#16283C;
+    --good:#6FCB8C; --good-soft:#12301C; --warn:#E4B463; --warn-soft:#33270F; --crit:#F09287; --crit-soft:#3A1712;
+    --chart:#6FB1EF; --chart-fill:rgba(111,177,239,.16); --shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg); color:var(--ink); font-family:"Public Sans",system-ui,-apple-system,sans-serif;
+       margin:0; line-height:1.55; -webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:"Archivo","Public Sans",system-ui,sans-serif; text-wrap:balance; margin:0;}
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;}
+  .num{font-variant-numeric:tabular-nums;}
+  .wrap{max-width:1060px; margin:0 auto; padding:0 20px;}
+  a{color:var(--accent);}
+  button{font:inherit; cursor:pointer;}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){ *,*::before,*::after{animation:none!important; transition:none!important;} }
+
+  /* ---------- header ---------- */
+  header.top{padding:26px 0 8px;}
+  .brand{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
+  .brand .logo{font-family:"Archivo"; font-weight:800; font-size:1.35rem; letter-spacing:-.01em;}
+  .brand .logo .tick{color:var(--accent);}
+  .brand .tag{font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; font-family:"IBM Plex Mono",monospace;}
+
+  /* ---------- gate ---------- */
+  #gate{position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
+        background:color-mix(in srgb, var(--bg) 55%, transparent); backdrop-filter:blur(9px); padding:20px;}
+  #gate[hidden]{display:none;}
+  .gate-card{background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow);
+             max-width:430px; width:100%; padding:30px 28px;}
+  .gate-card h2{font-size:1.45rem; font-weight:800; letter-spacing:-.01em; margin-bottom:6px;}
+  .gate-card p{color:var(--ink2); font-size:.92rem; margin:.35rem 0 1.1rem;}
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:.78rem; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--ink2); margin-bottom:5px;}
+  .field input{width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); font:inherit;}
+  .field input:focus{border-color:var(--accent); outline:none;}
+  .gate-err{color:var(--crit); font-size:.83rem; min-height:1.2em; margin:4px 0 8px;}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; border:none; border-radius:9px;
+       padding:12px 20px; font-weight:700; font-size:.95rem;}
+  .btn-primary{background:var(--accent); color:var(--accent-ink); width:100%;}
+  .btn-primary:hover{filter:brightness(1.07);}
+  .btn-ghost{background:transparent; color:var(--accent); border:1px solid var(--line); border-radius:9px;}
+  .gate-fine{font-size:.75rem; color:var(--muted); margin-top:12px; text-align:center;}
+
+  /* ---------- landing ---------- */
+  #landing{padding:34px 0 60px;}
+  .hero h1{font-size:clamp(1.9rem, 4.5vw, 3rem); font-weight:800; letter-spacing:-.02em; line-height:1.12; max-width:19ch;}
+  .hero p.sub{max-width:56ch; color:var(--ink2); font-size:1.05rem; margin:16px 0 0;}
+  .privacy-chip{display:inline-flex; align-items:center; gap:8px; margin-top:14px; padding:6px 12px; border-radius:99px;
+    background:var(--good-soft); color:var(--good); font-size:.8rem; font-weight:600;}
+  .grid2{display:grid; grid-template-columns:1.2fr .8fr; gap:22px; margin-top:34px;}
+  @media (max-width:820px){ .grid2{grid-template-columns:1fr;} }
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:24px;}
+  #dropzone{border:2px dashed var(--line); border-radius:14px; background:var(--surface);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    padding:44px 24px; transition:border-color .15s, background .15s;}
+  #dropzone.drag{border-color:var(--accent); background:var(--accent-soft);}
+  #dropzone .dz-icon{font-size:2rem; margin-bottom:8px;}
+  #dropzone h3{font-size:1.1rem; margin-bottom:4px;}
+  #dropzone p{color:var(--ink2); font-size:.9rem; margin:0 0 16px; max-width:40ch;}
+  .dz-actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:center;}
+  #parse-status{margin-top:14px; font-size:.85rem; min-height:1.3em;}
+  #parse-status.err{color:var(--crit);}
+  #parse-status.ok{color:var(--good);}
+  .steps h3{font-size:1rem; margin-bottom:14px;}
+  .steps ol{margin:0; padding-left:0; list-style:none; display:flex; flex-direction:column; gap:12px;}
+  .steps li{display:flex; gap:12px; font-size:.9rem; color:var(--ink2);}
+  .steps .n{flex:none; width:24px; height:24px; border-radius:99px; background:var(--accent-soft); color:var(--accent);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.78rem; font-family:"IBM Plex Mono",monospace;}
+  .steps b{color:var(--ink);}
+  .method{margin-top:22px;}
+  .method summary{cursor:pointer; font-weight:600; color:var(--accent); font-size:.92rem;}
+  .method .m-body{color:var(--ink2); font-size:.9rem; max-width:70ch;}
+  .pillars-mini{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:12px;}
+  .pillars-mini .pm{background:var(--surface2); border-radius:10px; padding:12px 14px; font-size:.85rem;}
+  .pillars-mini b{display:block; color:var(--ink); margin-bottom:2px;}
+
+  /* ---------- dashboard ---------- */
+  #dashboard{padding:26px 0 70px;}
+  .dash-head{display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:18px;}
+  .dash-head h2{font-size:1.5rem; font-weight:800; letter-spacing:-.01em;}
+  .dash-head .period{color:var(--muted); font-size:.85rem; font-family:"IBM Plex Mono",monospace;}
+  .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:22px;}
+  .tile{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px;}
+  .tile .t-label{font-size:.72rem; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:600;}
+  .tile .t-value{font-family:"Archivo"; font-weight:800; font-size:1.5rem; letter-spacing:-.01em; margin-top:2px;}
+  .tile .t-sub{font-size:.76rem; color:var(--ink2);}
+
+  .score-grid{display:grid; grid-template-columns:340px 1fr; gap:22px; margin-bottom:22px;}
+  @media (max-width:820px){ .score-grid{grid-template-columns:1fr;} }
+  .score-card{display:flex; flex-direction:column; align-items:center; text-align:center; gap:6px;}
+  .score-card .lvl{display:inline-block; padding:4px 14px; border-radius:99px; font-weight:700; font-size:.85rem;}
+  .score-card .expl{color:var(--ink2); font-size:.85rem; max-width:34ch;}
+  .pillar-list{display:flex; flex-direction:column; gap:16px; justify-content:center;}
+  .pillar{display:grid; grid-template-columns:1fr auto; gap:4px 12px; align-items:baseline;}
+  .pillar .p-name{font-weight:600; font-size:.95rem;}
+  .pillar .p-score{font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:.9rem; color:var(--ink2);}
+  .pillar .bar{grid-column:1/-1; height:8px; border-radius:6px; background:var(--surface2); overflow:hidden;}
+  .pillar .bar i{display:block; height:100%; border-radius:6px; background:var(--accent); transition:width .7s ease;}
+  .pillar .p-note{grid-column:1/-1; font-size:.8rem; color:var(--muted);}
+
+  .sec-title{font-size:1.05rem; font-weight:700; margin:26px 0 12px;}
+  .insights{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:12px;}
+  .insight{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px; display:flex; flex-direction:column; gap:6px;}
+  .insight .i-tag{align-self:flex-start; font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em;
+     padding:3px 9px; border-radius:99px;}
+  .i-tag.oportunidad{background:var(--warn-soft); color:var(--warn);}
+  .i-tag.critico{background:var(--crit-soft); color:var(--crit);}
+  .i-tag.fortaleza{background:var(--good-soft); color:var(--good);}
+  .insight h4{margin:0; font-size:.98rem;}
+  .insight p{margin:0; font-size:.87rem; color:var(--ink2);}
+
+  .charts{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media (max-width:820px){ .charts{grid-template-columns:1fr;} }
+  .chart-card h4{font-size:.92rem; margin-bottom:2px;}
+  .chart-card .c-sub{font-size:.78rem; color:var(--muted); margin-bottom:10px;}
+  .chart-wrap{position:relative;}
+  .chart-wrap svg{display:block; width:100%; height:auto;}
+  .tooltip{position:absolute; pointer-events:none; background:var(--ink); color:var(--bg); font-size:.75rem;
+    font-family:"IBM Plex Mono",monospace; padding:6px 9px; border-radius:7px; transform:translate(-50%,-115%);
+    white-space:nowrap; opacity:0; transition:opacity .1s; z-index:5;}
+
+  .table-scroll{overflow-x:auto;}
+  table.posts{border-collapse:collapse; width:100%; font-size:.87rem; min-width:560px;}
+  table.posts th{text-align:left; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
+    padding:8px 10px; border-bottom:1px solid var(--line);}
+  table.posts td{padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+  table.posts td.num, table.posts th.num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  table.posts a{text-decoration:none; font-weight:600;}
+  table.posts a:hover{text-decoration:underline;}
+
+  .aud-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px;}
+  .aud-card h4{font-size:.92rem; margin-bottom:10px;}
+  .hbar{display:grid; grid-template-columns:1fr auto; gap:2px 10px; align-items:center; margin-bottom:9px; font-size:.85rem;}
+  .hbar .h-track{grid-column:1/-1; height:6px; border-radius:5px; background:var(--surface2); overflow:hidden;}
+  .hbar .h-track i{display:block; height:100%; background:var(--chart); border-radius:5px;}
+  .hbar .h-val{font-family:"IBM Plex Mono",monospace; color:var(--ink2); font-size:.78rem;}
+
+  .dash-foot{margin-top:34px; border-top:1px solid var(--line); padding-top:18px; color:var(--muted); font-size:.8rem;
+    display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;}
+  .reset{background:none; border:none; color:var(--accent); font-weight:600; padding:0; font-size:.85rem;}
+  footer.site{padding:0 0 40px; color:var(--muted); font-size:.8rem;}
+</style>
+
+<div id="gate">
+  <form class="gate-card" id="gate-form" novalidate>
+    <h2>Descubre el pulso de tu LinkedIn</h2>
+    <p>Sube el export de tus estadísticas y recibe una calificación de tu perfil, al estilo SSI, con oportunidades concretas de mejora. Deja tus datos para acceder a la herramienta.</p>
+    <div class="field">
+      <label for="g-name">Nombre</label>
+      <input id="g-name" name="name" type="text" autocomplete="name" placeholder="Tu nombre">
+    </div>
+    <div class="field">
+      <label for="g-email">Correo</label>
+      <input id="g-email" name="email" type="email" autocomplete="email" placeholder="tu@correo.com">
+    </div>
+    <div class="gate-err" id="gate-err"></div>
+    <button class="btn btn-primary" type="submit">Acceder a la herramienta</button>
+    <p class="gate-fine">Tus métricas se procesan solo en tu navegador: ningún dato de tu LinkedIn se envía a ningún servidor.</p>
+  </form>
+</div>
+
+<header class="top">
+  <div class="wrap brand">
+    <span class="logo">Pulso<span class="tick">/</span>LinkedIn</span>
+    <span class="tag">Diagnóstico de rendimiento · by Brissia Benavente</span>
+  </div>
+</header>
+
+<main>
+  <section id="landing" class="wrap">
+    <div class="hero">
+      <h1>Tu LinkedIn, medido como lo haría un analista.</h1>
+      <p class="sub">LinkedIn te muestra números sueltos; esta herramienta los convierte en un diagnóstico. Sube el archivo de estadísticas que exporta tu propio perfil y obtén un score de 0 a 100 sobre cuatro pilares — consistencia, alcance, engagement y crecimiento — más las oportunidades de mejora que tus datos revelan.</p>
+      <span class="privacy-chip">🔒 100% privado — el archivo nunca sale de tu navegador</span>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <div id="dropzone">
+          <div class="dz-icon">📈</div>
+          <h3>Arrastra aquí tu export de LinkedIn</h3>
+          <p>Archivo <b>.xlsx</b> de análisis de perfil (funciona con exports en español o inglés).</p>
+          <div class="dz-actions">
+            <button class="btn btn-primary" id="pick-file" type="button" style="width:auto">Elegir archivo</button>
+            <button class="btn btn-ghost" id="demo-btn" type="button">Ver demo con datos de ejemplo</button>
+          </div>
+          <input type="file" id="file-input" accept=".xlsx" hidden>
+          <div id="parse-status" role="status"></div>
+        </div>
+
+        <details class="method card" style="margin-top:22px">
+          <summary>¿Cómo se calcula el score?</summary>
+          <div class="m-body">
+            <p>Inspirado en el Social Selling Index de LinkedIn, el score reparte 100 puntos en cuatro pilares de 25. A diferencia del SSI — que mide tu actividad dentro de la plataforma — este índice se calcula exclusivamente a partir de los resultados observables en tu export: lo que tu contenido y tu audiencia realmente hicieron en los últimos 12 meses.</p>
+            <div class="pillars-mini">
+              <div class="pm"><b>Consistencia</b>Frecuencia de publicación y días con actividad sostenida.</div>
+              <div class="pm"><b>Alcance</b>Impresiones por seguidor, miembros alcanzados y tendencia reciente.</div>
+              <div class="pm"><b>Engagement</b>Tasa de interacción y dependencia de posts virales.</div>
+              <div class="pm"><b>Crecimiento</b>Ritmo de nuevos seguidores y calidad de la audiencia (seniority).</div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card steps">
+        <h3>Cómo exportar tus datos (2 minutos)</h3>
+        <ol>
+          <li><span class="n">1</span><span>En LinkedIn, ve a tu perfil y abre <b>Herramientas de análisis</b> (Analytics).</span></li>
+          <li><span class="n">2</span><span>Entra a <b>Rendimiento de las publicaciones</b> o «Análisis conjunto».</span></li>
+          <li><span class="n">3</span><span>Elige el rango <b>Últimos 365 días</b> para el diagnóstico más completo.</span></li>
+          <li><span class="n">4</span><span>Pulsa <b>Exportar</b> y descarga el archivo .xlsx. Súbelo aquí tal cual.</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="dashboard" class="wrap" hidden>
+    <div class="dash-head">
+      <div>
+        <h2 id="dash-title">Diagnóstico de tu perfil</h2>
+        <div class="period" id="dash-period"></div>
+      </div>
+      <button class="reset" id="reset-btn" type="button">← Analizar otro archivo</button>
+    </div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="score-grid">
+      <div class="card score-card">
+        <div id="dial"></div>
+        <span class="lvl" id="score-level"></span>
+        <p class="expl" id="score-expl"></p>
+      </div>
+      <div class="card pillar-list" id="pillars"></div>
+    </div>
+
+    <h3 class="sec-title">Oportunidades de mejora</h3>
+    <div class="insights" id="insights"></div>
+
+    <h3 class="sec-title">Evolución</h3>
+    <div class="charts">
+      <div class="card chart-card">
+        <h4>Impresiones por semana</h4>
+        <div class="c-sub" id="impr-sub"></div>
+        <div class="chart-wrap" id="chart-impr"></div>
+      </div>
+      <div class="card chart-card">
+        <h4>Seguidores acumulados</h4>
+        <div class="c-sub" id="foll-sub"></div>
+        <div class="chart-wrap" id="chart-foll"></div>
+      </div>
+    </div>
+
+    <h3 class="sec-title">Publicaciones destacadas</h3>
+    <div class="card table-scroll" id="posts-card"></div>
+
+    <h3 class="sec-title">Tu audiencia</h3>
+    <div class="aud-grid" id="audience"></div>
+
+    <div class="dash-foot">
+      <span>Score orientativo calculado con benchmarks públicos de creadores en LinkedIn. No es una métrica oficial de LinkedIn.</span>
+      <span>Pulso/LinkedIn · Brissia Benavente</span>
+    </div>
+  </section>
+</main>
+
+<footer class="site wrap">Hecho con datos, no con humo.</footer>
+
+<script>
+"use strict";
+/* ============ CONFIG ============ */
+// Si autohospedas esta página (Netlify, Vercel...), coloca aquí tu endpoint de
+// formularios (Formspree, Tally, etc.) para recibir los leads por correo.
+// Dentro de un Artifact de Claude este envío está bloqueado por seguridad (CSP),
+// por lo que el registro solo se guarda en el navegador del visitante.
+const FORM_ENDPOINT = "https://formsubmit.co/ajax/brissia.benavente@gmail.com";
+
+/* ============ GATE ============ */
+const gate = document.getElementById('gate');
+const gateForm = document.getElementById('gate-form');
+const gateErr = document.getElementById('gate-err');
+try{
+  const saved = localStorage.getItem('pulso_lead');
+  if(saved) gate.hidden = true;
+}catch(e){/* almacenamiento no disponible: la puerta se muestra igual */}
+gateForm.addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const name = document.getElementById('g-name').value.trim();
+  const email = document.getElementById('g-email').value.trim();
+  if(name.length < 2){ gateErr.textContent = 'Escribe tu nombre para continuar.'; return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ gateErr.textContent = 'Ese correo no parece válido. Revísalo.'; return; }
+  gateErr.textContent = '';
+  const lead = {name, email, ts: new Date().toISOString(), _subject: 'Nuevo lead — Pulso LinkedIn'};
+  try{ localStorage.setItem('pulso_lead', JSON.stringify(lead)); }catch(e){}
+  if(FORM_ENDPOINT){
+    try{ await fetch(FORM_ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(lead)}); }
+    catch(e){ /* sin conexión al endpoint: no bloquea el acceso */ }
+  }
+  gate.hidden = true;
+});
+
+/* ============ XLSX PARSER (zip + xml, sin librerías) ============ */
+async function inflateRaw(bytes){
+  const ds = new DecompressionStream('deflate-raw');
+  const stream = new Blob([bytes]).stream().pipeThrough(ds);
+  const buf = await new Response(stream).arrayBuffer();
+  return new Uint8Array(buf);
+}
+async function unzip(buffer){
+  const u8 = new Uint8Array(buffer);
+  const dv = new DataView(buffer);
+  // localizar End Of Central Directory
+  let eocd = -1;
+  for(let i = u8.length - 22; i >= Math.max(0, u8.length - 66000); i--){
+    if(dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if(eocd < 0) throw new Error('El archivo no es un .xlsx válido.');
+  const count = dv.getUint16(eocd + 10, true);
+  let off = dv.getUint32(eocd + 16, true);
+  const files = {};
+  const td = new TextDecoder();
+  for(let n = 0; n < count; n++){
+    if(dv.getUint32(off, true) !== 0x02014b50) break;
+    const method = dv.getUint16(off + 10, true);
+    const csize  = dv.getUint32(off + 20, true);
+    const nlen   = dv.getUint16(off + 28, true);
+    const elen   = dv.getUint16(off + 30, true);
+    const clen   = dv.getUint16(off + 32, true);
+    const lho    = dv.getUint32(off + 42, true);
+    const name   = td.decode(u8.subarray(off + 46, off + 46 + nlen));
+    const lnlen  = dv.getUint16(lho + 26, true);
+    const lelen  = dv.getUint16(lho + 28, true);
+    const dstart = lho + 30 + lnlen + lelen;
+    const raw    = u8.subarray(dstart, dstart + csize);
+    files[name]  = {method, raw};
+    off += 46 + nlen + elen + clen;
+  }
+  return {
+    async text(name){
+      const f = files[name];
+      if(!f) return null;
+      const data = f.method === 8 ? await inflateRaw(f.raw) : f.raw;
+      return new TextDecoder().decode(data);
+    },
+    names: Object.keys(files)
+  };
+}
+function colIndex(ref){ // "BC12" -> 54
+  let c = 0;
+  for(const ch of ref){
+    const code = ch.charCodeAt(0);
+    if(code >= 65 && code <= 90) c = c * 26 + (code - 64); else break;
+  }
+  return c - 1;
+}
+async function parseXlsx(buffer){
+  const zip = await unzip(buffer);
+  const xml = s => new DOMParser().parseFromString(s, 'application/xml');
+  const wbXml = xml(await zip.text('xl/workbook.xml'));
+  const relXml = xml(await zip.text('xl/_rels/workbook.xml.rels'));
+  const rels = {};
+  for(const r of relXml.getElementsByTagName('Relationship')){
+    rels[r.getAttribute('Id')] = r.getAttribute('Target').replace(/^\//,'');
+  }
+  const shared = [];
+  const ssText = await zip.text('xl/sharedStrings.xml');
+  if(ssText){
+    const ss = xml(ssText);
+    for(const si of ss.getElementsByTagName('si')){
+      let t = '';
+      for(const node of si.getElementsByTagName('t')) t += node.textContent;
+      shared.push(t);
+    }
+  }
+  const sheets = [];
+  for(const sh of wbXml.getElementsByTagName('sheet')){
+    const rid = sh.getAttribute('r:id') || sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
+    let target = rels[rid] || '';
+    if(!target.startsWith('xl/')) target = 'xl/' + target;
+    const text = await zip.text(target);
+    if(!text) continue;
+    const doc = xml(text);
+    const grid = [];
+    for(const row of doc.getElementsByTagName('row')){
+      const rIdx = parseInt(row.getAttribute('r'), 10) - 1;
+      for(const c of row.getElementsByTagName('c')){
+        const ref = c.getAttribute('r') || '';
+        const ci = colIndex(ref);
+        const t = c.getAttribute('t');
+        let val = null;
+        if(t === 'inlineStr'){
+          const is = c.getElementsByTagName('t')[0];
+          val = is ? is.textContent : '';
+        } else {
+          const v = c.getElementsByTagName('v')[0];
+          if(v){
+            val = t === 's' ? (shared[parseInt(v.textContent,10)] ?? '') : v.textContent;
+          }
+        }
+        if(val !== null){
+          while(grid.length <= rIdx) grid.push([]);
+          grid[rIdx][ci] = val;
+        }
+      }
+    }
+    sheets.push({name: sh.getAttribute('name'), grid});
+  }
+  return sheets;
+}
+
+/* ============ NORMALIZACIÓN DEL EXPORT ============ */
+const norm = s => String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+const toNum = v => {
+  if(v == null) return null;
+  const s = String(v).replace(/[^\d\-]/g,'');
+  return s === '' ? null : parseInt(s, 10);
+};
+const toPct = v => { // "32 %" | "< 1 %" -> 32 | 0.5
+  const s = String(v||'');
+  if(s.includes('<')) return 0.5;
+  const m = s.match(/[\d.,]+/);
+  return m ? parseFloat(m[0].replace(',','.')) : 0;
+};
+function parseDate(s, dayFirst){
+  const m = String(s||'').match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if(!m) return null;
+  let a = +m[1], b = +m[2], y = +m[3]; if(y < 100) y += 2000;
+  const [d, mo] = dayFirst ? [a, b] : [b, a];
+  const dt = new Date(y, mo - 1, d);
+  return isNaN(dt) ? null : dt;
+}
+function detectDayFirst(samples){
+  for(const s of samples){
+    const m = String(s||'').match(/(\d{1,2})[\/\-.](\d{1,2})/);
+    if(!m) continue;
+    if(+m[1] > 12) return true;
+    if(+m[2] > 12) return false;
+  }
+  return true; // exports en español: d/m/aaaa
+}
+function findSheet(sheets, keys, fallbackIdx){
+  for(const sh of sheets){
+    const n = norm(sh.name);
+    if(keys.some(k => n.includes(k))) return sh;
+  }
+  return sheets[fallbackIdx] || null;
+}
+function extractData(sheets){
+  const disc  = findSheet(sheets, ['DESCUBRI','DISCOVERY'], 0);
+  const daily = findSheet(sheets, ['INTERACCION','ENGAGEMENT'], 1);
+  const posts = findSheet(sheets, ['PUBLICACION','TOP POSTS'], 2);
+  const foll  = findSheet(sheets, ['SEGUIDOR','FOLLOWER'], 3);
+  const audAll = sheets.filter(sh => /INFORMACION|DEMOGRAPH|AUDIENCE/.test(norm(sh.name)) && sh.grid.some(r => r && r.length >= 3));
+  const aud = audAll.find(sh => /DEL PUBLI|AUDIENCE|DEMOGRAPH/.test(norm(sh.name))) || audAll[0];
+
+  const data = {impressions:null, reached:null, daysSeries:[], newFollowers:[], totalFollowers:null,
+                posts:[], audience:{}, periodLabel:''};
+
+  if(disc){
+    for(const r of disc.grid){
+      if(!r) continue;
+      const label = norm(r[0]);
+      if(label.includes('IMPRESIONES') || label.includes('IMPRESSIONS')) data.impressions = toNum(r[1]);
+      if(label.includes('ALCANZADOS') || label.includes('REACHED') || label.includes('MIEMBROS')) data.reached = toNum(r[1]);
+      if(label.includes('RENDIMIENTO') || label.includes('OVERALL')) data.periodLabel = String(r[1]||'');
+    }
+  }
+  if(daily){
+    const dateSamples = [];
+    for(const r of daily.grid){
+      if(!r || toNum(r[1]) === null) continue;
+      if(norm(r[0]).includes('FECHA') || norm(r[0]).includes('DATE')) continue;
+      dateSamples.push(r[0]);
+      data.daysSeries.push({raw:r[0], impressions: toNum(r[1]) ?? 0, interactions: toNum(r[2]) ?? 0});
+    }
+    const df = detectDayFirst(dateSamples);
+    data.daysSeries.forEach(d => d.date = parseDate(d.raw, df));
+  }
+  if(foll){
+    for(const r of foll.grid){
+      if(!r) continue;
+      const label = norm(r[0]);
+      if(label.includes('TOTAL')){ data.totalFollowers = toNum(r[1]); continue; }
+      if(label.includes('FECHA') || label.includes('DATE')) continue;
+      const n = toNum(r[1]);
+      if(n !== null && /\d/.test(String(r[0]))) data.newFollowers.push({raw:r[0], value:n});
+    }
+  }
+  if(posts){
+    const byUrl = new Map();
+    const dateSamples = [];
+    for(const r of posts.grid){
+      if(!r) continue;
+      // lado izquierdo: URL, fecha, interacciones (cols 0-2); derecho: URL, fecha, impresiones (cols 4-6)
+      if(String(r[0]||'').startsWith('http')){
+        const p = byUrl.get(r[0]) || {url:r[0]};
+        p.dateRaw = r[1]; p.interactions = toNum(r[2]);
+        byUrl.set(r[0], p); dateSamples.push(r[1]);
+      }
+      if(String(r[4]||'').startsWith('http')){
+        const p = byUrl.get(r[4]) || {url:r[4]};
+        p.dateRaw = p.dateRaw || r[5]; p.impressions = toNum(r[6]);
+        byUrl.set(r[4], p); dateSamples.push(r[5]);
+      }
+    }
+    const df = detectDayFirst(dateSamples);
+    data.posts = [...byUrl.values()].map(p => ({...p, date: parseDate(p.dateRaw, df)}));
+  }
+  if(aud){
+    for(const r of aud.grid){
+      if(!r || r.length < 3) continue;
+      const cat = String(r[0]||'').trim();
+      if(!cat || norm(cat).includes('INFORMACION') || norm(cat) === 'TOP DEMOGRAPHICS') continue;
+      (data.audience[cat] = data.audience[cat] || []).push({label:String(r[1]||''), pct:toPct(r[2])});
+    }
+  }
+  if(!data.daysSeries.length) throw new Error('No encontré la hoja de interacción diaria. ¿Es el export de análisis de LinkedIn?');
+  return data;
+}
+
+/* ============ MODELO DE SCORE ============ */
+const clamp01 = x => Math.max(0, Math.min(1, x));
+function analyze(d){
+  const days = d.daysSeries;
+  const nDays = days.length;
+  const months = Math.max(1, nDays / 30.4);
+  const totalImpr = d.impressions ?? days.reduce((a,x)=>a+x.impressions,0);
+  const totalInter = days.reduce((a,x)=>a+x.interactions,0);
+  const er = totalImpr > 0 ? totalInter / totalImpr : 0;
+  const newFollTotal = d.newFollowers.reduce((a,x)=>a+x.value,0);
+  const followers = d.totalFollowers ?? Math.max(newFollTotal, 1);
+  const initialFollowers = Math.max(1, followers - newFollTotal);
+  const activeDays = days.filter(x => x.interactions > 0).length;
+  const activeRate = activeDays / Math.max(1, nDays);
+
+  // cadencia de publicación (el export lista máx. 50 posts: con 50, la cifra es un piso)
+  const postDates = new Set(d.posts.filter(p=>p.date).map(p => p.date.toDateString()));
+  const cappedAt50 = d.posts.length >= 50;
+  const postsPerWeek = (postDates.size || d.posts.length) / (nDays / 7);
+
+  // tendencias: último tercio vs tercio anterior
+  const third = Math.floor(nDays / 3);
+  const sum = (arr, from, to, key) => arr.slice(from, to).reduce((a,x)=>a+(key?x[key]:x.value),0);
+  const imprRecent = sum(days, nDays - third, nDays, 'impressions');
+  const imprPrev   = Math.max(1, sum(days, nDays - 2*third, nDays - third, 'impressions'));
+  const imprTrend  = (imprRecent - imprPrev) / imprPrev;
+  const nf = d.newFollowers;
+  const fThird = Math.floor(nf.length / 3);
+  const follRecent = sum(nf, nf.length - fThird, nf.length);
+  const follPrev   = Math.max(1, sum(nf, nf.length - 2*fThird, nf.length - fThird));
+  const follTrend  = (follRecent - follPrev) / follPrev;
+
+  // concentración: dependencia de posts virales
+  const postImpr = d.posts.map(p=>p.impressions).filter(x=>x!=null).sort((a,b)=>b-a);
+  const top5Share = totalImpr > 0 ? postImpr.slice(0,5).reduce((a,x)=>a+x,0) / totalImpr : 0;
+
+  // audiencia: % de decision makers según seniority
+  const senKey = Object.keys(d.audience).find(k => /RESPONSABILIDAD|SENIORITY/.test(norm(k)));
+  const seniors = ['DIRECTOR','GERENTE','DIRECTIVO','VICEPRESIDENTE','CONSEJERO','PROPIETARIO','SOCIO','CXO','MANAGER','VP','OWNER','PARTNER','DIRECTIVE'];
+  let dmShare = null;
+  if(senKey){
+    dmShare = d.audience[senKey].filter(x => seniors.some(s => norm(x.label).includes(s)))
+                                .reduce((a,x)=>a+x.pct,0);
+  }
+  const monthlyGrowth = (newFollTotal / initialFollowers) / months;
+  const reachRatio = d.reached != null ? d.reached / Math.max(1, followers) : null;
+  const imprPerFollMonth = totalImpr / Math.max(1, followers) / months;
+  const trendScore = g => clamp01((g + 0.5) / 0.7);
+
+  // --- pilares (25 c/u) ---
+  const p1 = {
+    name:'Consistencia',
+    parts:[
+      {v: clamp01(postsPerWeek / 2.5) * 12, max:12, key:'freq'},
+      {v: clamp01(activeRate / 0.8) * 13,   max:13, key:'active'}
+    ]
+  };
+  const p2 = {
+    name:'Alcance',
+    parts:[
+      {v: (reachRatio == null ? 0.5 : clamp01(reachRatio / 4)) * 10, max:10, key:'reach'},
+      {v: clamp01(imprPerFollMonth / 3) * 8, max:8, key:'imprfoll'},
+      {v: trendScore(imprTrend) * 7, max:7, key:'imprtrend'}
+    ]
+  };
+  const p3 = {
+    name:'Engagement',
+    parts:[
+      {v: clamp01(er / 0.05) * 15, max:15, key:'er'},
+      {v: clamp01((0.6 - top5Share) / 0.4) * 10, max:10, key:'conc'}
+    ]
+  };
+  const p4 = {
+    name:'Crecimiento y audiencia',
+    parts:[
+      {v: clamp01(monthlyGrowth / 0.03) * 10, max:10, key:'growth'},
+      {v: (dmShare == null ? 0.5 : clamp01(dmShare / 30)) * 8, max:8, key:'dm'},
+      {v: trendScore(follTrend) * 7, max:7, key:'folltrend'}
+    ]
+  };
+  for(const p of [p1,p2,p3,p4]) p.score = p.parts.reduce((a,x)=>a+x.v,0);
+  const total = Math.round(p1.score + p2.score + p3.score + p4.score);
+
+  return {total, pillars:[p1,p2,p3,p4],
+    m:{nDays, months, totalImpr, totalInter, er, followers, newFollTotal, monthlyGrowth,
+       activeRate, activeDays, postsPerWeek, cappedAt50, imprTrend, follTrend, top5Share,
+       dmShare, reached:d.reached, reachRatio, imprPerFollMonth, nPosts:d.posts.length}};
+}
+
+/* ============ INSIGHTS ============ */
+const fmt = n => n == null ? '—' : n.toLocaleString('es', {maximumFractionDigits:0});
+const fmt1 = n => n == null ? '—' : n.toLocaleString('es', {maximumFractionDigits:1});
+const pct = (x, d=1) => x == null ? '—' : (x*100).toLocaleString('es',{maximumFractionDigits:d}) + ' %';
+function buildInsights(a){
+  const m = a.m;
+  const out = [];
+  const add = (severity, gap, title, body) => out.push({severity, gap, title, body});
+
+  if(m.postsPerWeek < 2 && !m.cappedAt50)
+    add('oportunidad', (2 - m.postsPerWeek) / 2, 'Publica con más frecuencia',
+      `Detectamos ~${fmt1(m.postsPerWeek)} publicaciones por semana. El algoritmo premia la cadencia sostenida: apunta a 2–3 por semana antes de optimizar cualquier otra cosa.`);
+  if(m.activeRate < 0.7)
+    add(m.activeRate < 0.4 ? 'critico' : 'oportunidad', 0.7 - m.activeRate, 'Reduce los días en silencio',
+      `Solo el ${pct(m.activeRate,0)} de los días registró interacciones. Los periodos de inactividad reinician tu alcance: comentar en publicaciones de otros los días que no publicas mantiene el perfil «caliente».`);
+  if(m.er < 0.03)
+    add(m.er < 0.015 ? 'critico' : 'oportunidad', (0.03 - m.er) / 0.03, 'Sube tu tasa de interacción',
+      `Tu engagement rate es ${pct(m.er)} (el promedio ronda 2 %; los perfiles top superan 5 %). Cierra tus posts con una pregunta concreta y responde cada comentario en la primera hora.`);
+  if(m.top5Share > 0.35)
+    add('oportunidad', m.top5Share - 0.35, 'Dependes de pocos posts virales',
+      `El ${pct(m.top5Share,0)} de tus impresiones viene de solo 5 publicaciones. Identifica qué formato y tema tienen en común y conviértelos en una serie recurrente.`);
+  if(m.imprTrend < -0.1)
+    add(m.imprTrend < -0.4 ? 'critico' : 'oportunidad', -m.imprTrend, 'Tu alcance va en descenso',
+      `Tus impresiones cayeron ${pct(Math.abs(m.imprTrend),0)} en el último tramo del periodo frente al anterior. Revisa si cambió tu cadencia o formato en esas semanas.`);
+  if(m.monthlyGrowth < 0.02)
+    add('oportunidad', (0.02 - m.monthlyGrowth) / 0.02, 'Acelera el crecimiento de seguidores',
+      `Creces ${pct(m.monthlyGrowth)} mensual. Para acelerar: optimiza el titular de tu perfil (es tu landing) e interactúa con cuentas grandes de tu nicho donde vive tu audiencia potencial.`);
+  if(m.dmShare != null && m.dmShare < 25)
+    add('oportunidad', (25 - m.dmShare) / 25, 'Atrae audiencia con poder de decisión',
+      `Solo ~${fmt1(m.dmShare)} % de tu audiencia son perfiles con seniority (director, gerente, VP, C-level). Si tu objetivo es negocio, crea contenido que hable de decisiones, no solo de tareas.`);
+  if(m.reachRatio != null && m.reachRatio < 2)
+    add('oportunidad', (2 - m.reachRatio) / 2, 'Rompe la burbuja de tu red',
+      `Alcanzaste ${fmt1(m.reachRatio)}× tu número de seguidores. Los perfiles que crecen alcanzan 4× o más: los formatos que LinkedIn distribuye fuera de tu red (carruseles, posts con debate en comentarios) son tu palanca.`);
+
+  // fortalezas: hasta 2
+  const strengths = [];
+  if(m.er >= 0.03) strengths.push(['Tu engagement es tu superpoder', `Con ${pct(m.er)} de tasa de interacción estás por encima del promedio de la plataforma. Tu contenido conecta: es momento de escalar el volumen.`]);
+  if(m.monthlyGrowth >= 0.03) strengths.push(['Creces a buen ritmo', `${pct(m.monthlyGrowth)} de crecimiento mensual de seguidores está en zona de perfiles de alto rendimiento.`]);
+  if(m.imprTrend > 0.2) strengths.push(['Tendencia al alza', `Tus impresiones subieron ${pct(m.imprTrend,0)} en el último tramo. Lo que estás haciendo ahora funciona: duplica esa apuesta.`]);
+  if(m.top5Share <= 0.3 && m.nPosts > 10) strengths.push(['Alcance bien repartido', `Ninguna publicación domina tus impresiones: tu audiencia responde a tu contenido de forma consistente, no a un golpe de suerte.`]);
+  if(m.activeRate >= 0.8) strengths.push(['Constancia sólida', `Registraste actividad en ${pct(m.activeRate,0)} de los días. La consistencia es la variable que la mayoría no logra sostener.`]);
+
+  out.sort((a,b)=>b.gap-a.gap);
+  const top = out.slice(0,5);
+  for(const [t,b] of strengths.slice(0,2)) top.push({severity:'fortaleza', title:t, body:b});
+  return top;
+}
+
+/* ============ RENDER ============ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function levelInfo(score){
+  if(score >= 85) return {label:'Referente', cls:'good', expl:'Tu perfil opera al nivel del 1 % de creadores. El reto ya no es crecer: es capitalizar.'};
+  if(score >= 70) return {label:'Alto rendimiento', cls:'good', expl:'Perfil consolidado con motores funcionando. Los ajustes finos marcan la diferencia aquí.'};
+  if(score >= 55) return {label:'Sólido', cls:'warn', expl:'Buena base con palancas claras de mejora. Estás a 2–3 hábitos de otro nivel.'};
+  if(score >= 40) return {label:'Activo', cls:'warn', expl:'Hay actividad, pero sin sistema. Las oportunidades de abajo son tu hoja de ruta.'};
+  return {label:'En construcción', cls:'crit', expl:'Tu presencia aún no genera tracción medible. La buena noticia: todo lo que hagas se notará rápido.'};
+}
+function renderDial(score){
+  const lv = levelInfo(score);
+  const color = lv.cls === 'good' ? 'var(--good)' : lv.cls === 'warn' ? 'var(--warn)' : 'var(--crit)';
+  const R = 84, C = 2 * Math.PI * R, arc = C * 0.75;
+  const filled = arc * (score / 100);
+  return `<svg viewBox="0 0 220 200" width="220" height="200" role="img" aria-label="Score ${score} de 100">
+    <g transform="rotate(135 110 105)">
+      <circle cx="110" cy="105" r="${R}" fill="none" stroke="var(--surface2)" stroke-width="14"
+        stroke-dasharray="${arc} ${C}" stroke-linecap="round"/>
+      <circle cx="110" cy="105" r="${R}" fill="none" stroke="${color}" stroke-width="14"
+        stroke-dasharray="${filled} ${C}" stroke-linecap="round"/>
+    </g>
+    <text x="110" y="102" text-anchor="middle" font-family="Archivo, sans-serif" font-weight="800"
+      font-size="52" fill="var(--ink)" class="num">${score}</text>
+    <text x="110" y="128" text-anchor="middle" font-family="'IBM Plex Mono', monospace"
+      font-size="12" fill="var(--muted)">/ 100</text>
+  </svg>`;
+}
+function areaChart(container, series, labelFn, valueFn){
+  const W = 460, H = 170, padL = 8, padR = 8, padT = 12, padB = 8;
+  const vals = series.map(valueFn);
+  const max = Math.max(1, ...vals);
+  const n = series.length;
+  const x = i => padL + (W - padL - padR) * (n <= 1 ? 0 : i / (n - 1));
+  const y = v => H - padB - (H - padT - padB) * (v / max);
+  let path = '', area = `M ${x(0)} ${H - padB} `;
+  vals.forEach((v,i) => { path += `${i?'L':'M'} ${x(i).toFixed(1)} ${y(v).toFixed(1)} `; area += `L ${x(i).toFixed(1)} ${y(v).toFixed(1)} `; });
+  area += `L ${x(n-1)} ${H - padB} Z`;
+  const gridLines = [0.25, 0.5, 0.75].map(f =>
+    `<line x1="${padL}" x2="${W - padR}" y1="${y(max * f).toFixed(1)}" y2="${y(max * f).toFixed(1)}" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 4"/>`).join('');
+  const last = n - 1;
+  container.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="aspect-ratio:${W}/${H}">
+      ${gridLines}
+      <path d="${area}" fill="var(--chart-fill)"/>
+      <path d="${path}" fill="none" stroke="var(--chart)" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="${x(last).toFixed(1)}" cy="${y(vals[last]).toFixed(1)}" r="4" fill="var(--chart)" stroke="var(--surface)" stroke-width="2"/>
+      <line id="cross" x1="0" x2="0" y1="${padT}" y2="${H - padB}" stroke="var(--muted)" stroke-width="1" opacity="0"/>
+    </svg><div class="tooltip"></div>`;
+  const svg = container.querySelector('svg');
+  const tip = container.querySelector('.tooltip');
+  const cross = container.querySelector('#cross');
+  svg.addEventListener('pointermove', ev => {
+    const rect = svg.getBoundingClientRect();
+    const fx = (ev.clientX - rect.left) / rect.width * W;
+    const i = Math.round((fx - padL) / (W - padL - padR) * (n - 1));
+    if(i < 0 || i >= n){ tip.style.opacity = 0; cross.setAttribute('opacity', 0); return; }
+    cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('opacity', .6);
+    tip.textContent = `${labelFn(series[i], i)}: ${fmt(vals[i])}`;
+    tip.style.left = (x(i) / W * rect.width) + 'px';
+    tip.style.top = (y(vals[i]) / H * rect.height) + 'px';
+    tip.style.opacity = 1;
+  });
+  svg.addEventListener('pointerleave', () => { tip.style.opacity = 0; cross.setAttribute('opacity', 0); });
+}
+function weeklyAggregate(days, key){
+  const weeks = [];
+  for(let i = 0; i < days.length; i += 7){
+    const chunk = days.slice(i, i + 7);
+    weeks.push({label: chunk[0].raw, value: chunk.reduce((a,x)=>a+x[key],0)});
+  }
+  return weeks;
+}
+function renderDashboard(data, a, lead){
+  $('landing').hidden = true;
+  $('dashboard').hidden = false;
+  const m = a.m;
+  const who = lead && lead.name ? lead.name.split(' ')[0] : null;
+  $('dash-title').textContent = who ? `Diagnóstico de ${who}` : 'Diagnóstico de tu perfil';
+  $('dash-period').textContent = (data.periodLabel || `${m.nDays} días analizados`) + ` · ${m.nDays} días de datos`;
+
+  $('tiles').innerHTML = [
+    ['Score', a.total + '/100', levelInfo(a.total).label],
+    ['Impresiones', fmt(m.totalImpr), fmt(Math.round(m.totalImpr / m.months)) + ' por mes'],
+    ['Interacciones', fmt(m.totalInter), 'ER ' + pct(m.er)],
+    ['Seguidores', fmt(m.followers), '+' + fmt(m.newFollTotal) + ' en el periodo'],
+    ['Crecimiento', pct(m.monthlyGrowth), 'mensual promedio'],
+    ['Miembros alcanzados', fmt(m.reached), m.reachRatio ? fmt1(m.reachRatio) + '× tu audiencia' : '']
+  ].map(([l,v,s]) => `<div class="tile"><div class="t-label">${l}</div><div class="t-value num">${v}</div><div class="t-sub">${s}</div></div>`).join('');
+
+  $('dial').innerHTML = renderDial(a.total);
+  const lv = levelInfo(a.total);
+  const lvEl = $('score-level');
+  lvEl.textContent = lv.label;
+  lvEl.style.background = `var(--${lv.cls}-soft)`; lvEl.style.color = `var(--${lv.cls})`;
+  $('score-expl').textContent = lv.expl;
+
+  const notes = {
+    'Consistencia': `${fmt1(m.postsPerWeek)}${m.cappedAt50 ? '+' : ''} posts/semana · actividad en ${pct(m.activeRate,0)} de los días`,
+    'Alcance': `${fmt1(m.imprPerFollMonth)} impresiones por seguidor al mes · tendencia ${m.imprTrend >= 0 ? '+' : ''}${pct(m.imprTrend,0)}`,
+    'Engagement': `ER ${pct(m.er)} · top 5 posts concentran ${pct(m.top5Share,0)} del alcance`,
+    'Crecimiento y audiencia': `${pct(m.monthlyGrowth)} mensual · ${m.dmShare != null ? fmt1(m.dmShare) + ' % con seniority alto' : 'sin datos de seniority'}`
+  };
+  $('pillars').innerHTML = a.pillars.map(p => `
+    <div class="pillar">
+      <span class="p-name">${p.name}</span>
+      <span class="p-score num">${p.score.toFixed(1)} / 25</span>
+      <div class="bar"><i style="width:${(p.score/25*100).toFixed(0)}%"></i></div>
+      <span class="p-note">${notes[p.name] || ''}</span>
+    </div>`).join('');
+
+  $('insights').innerHTML = buildInsights(a).map(i => `
+    <div class="insight">
+      <span class="i-tag ${i.severity}">${i.severity === 'critico' ? 'Crítico' : i.severity === 'fortaleza' ? 'Fortaleza' : 'Oportunidad'}</span>
+      <h4>${i.title}</h4><p>${i.body}</p>
+    </div>`).join('');
+
+  const weeksI = weeklyAggregate(data.daysSeries, 'impressions');
+  $('impr-sub').textContent = `${fmt(m.totalImpr)} impresiones en ${weeksI.length} semanas`;
+  areaChart($('chart-impr'), weeksI, w => 'Semana del ' + w.label, w => w.value);
+
+  let acc = m.followers - m.newFollTotal;
+  const follSeries = data.newFollowers.map(x => ({label:x.raw, value: (acc += x.value)}));
+  $('foll-sub').textContent = `De ${fmt(m.followers - m.newFollTotal)} a ${fmt(m.followers)} seguidores`;
+  if(follSeries.length) areaChart($('chart-foll'), follSeries, x => x.label, x => x.value);
+  else $('chart-foll').innerHTML = '<p style="color:var(--muted);font-size:.85rem">Sin datos de seguidores en el export.</p>';
+
+  const topPosts = data.posts.filter(p => p.impressions != null).sort((x,y)=>y.impressions - x.impressions).slice(0,6);
+  $('posts-card').innerHTML = topPosts.length ? `<table class="posts">
+    <thead><tr><th>Publicación</th><th>Fecha</th><th class="num">Impresiones</th><th class="num">Interacciones</th><th class="num">ER</th></tr></thead>
+    <tbody>${topPosts.map(p => {
+      const slug = decodeURIComponent((p.url.match(/posts\/[^_]+_([^?]+)/) || [,''])[1] || '').replace(/-(ugcPost|share|activity)[\s\S]*$/,'').replace(/-/g,' ').slice(0,60);
+      const perER = p.interactions != null && p.impressions ? pct(p.interactions / p.impressions) : '—';
+      return `<tr>
+        <td><a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(slug || 'Ver publicación')}</a></td>
+        <td class="num">${esc(p.dateRaw || '—')}</td>
+        <td class="num">${fmt(p.impressions)}</td>
+        <td class="num">${p.interactions != null ? fmt(p.interactions) : '—'}</td>
+        <td class="num">${perER}</td></tr>`;
+    }).join('')}</tbody></table>` : '<p style="color:var(--muted)">El export no incluye publicaciones destacadas.</p>';
+
+  const audOrder = ['Nivel de responsabilidad','Seniority','Cargo','Job title','Sector','Industry','Ubicación','Location'];
+  const entries = Object.entries(data.audience)
+    .sort((x,y) => {
+      const ix = audOrder.findIndex(k => norm(x[0]).includes(norm(k)));
+      const iy = audOrder.findIndex(k => norm(y[0]).includes(norm(k)));
+      return (ix<0?99:ix) - (iy<0?99:iy);
+    }).slice(0,3);
+  $('audience').innerHTML = entries.map(([cat, rows]) => {
+    const top = rows.slice(0,5);
+    const maxP = Math.max(...top.map(r=>r.pct), 1);
+    return `<div class="card aud-card"><h4>${esc(cat)}</h4>${top.map(r => `
+      <div class="hbar"><span>${esc(r.label)}</span><span class="h-val num">${r.pct < 1 ? '<1' : fmt1(r.pct)} %</span>
+      <div class="h-track"><i style="width:${(r.pct/maxP*100).toFixed(0)}%"></i></div></div>`).join('')}</div>`;
+  }).join('') || '<p style="color:var(--muted)">El export no incluye demografía de audiencia.</p>';
+
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ============ FLUJO DE ARCHIVO ============ */
+const dz = $('dropzone');
+const status = $('parse-status');
+async function handleFile(file){
+  status.className = ''; status.textContent = 'Leyendo ' + file.name + '…';
+  try{
+    if(typeof DecompressionStream === 'undefined') throw new Error('Tu navegador no soporta la lectura local de .xlsx. Prueba con Chrome, Edge o Safari actualizados.');
+    const sheets = await parseXlsx(await file.arrayBuffer());
+    const data = extractData(sheets);
+    const a = analyze(data);
+    let lead = null; try{ lead = JSON.parse(localStorage.getItem('pulso_lead')); }catch(e){}
+    status.className = 'ok'; status.textContent = 'Listo.';
+    renderDashboard(data, a, lead);
+  }catch(err){
+    status.className = 'err';
+    status.textContent = 'No pude procesar el archivo: ' + err.message + ' Verifica que sea el .xlsx exportado desde las estadísticas de LinkedIn.';
+  }
+}
+$('pick-file').addEventListener('click', () => $('file-input').click());
+$('file-input').addEventListener('change', ev => { if(ev.target.files[0]) handleFile(ev.target.files[0]); });
+['dragover','dragenter'].forEach(t => dz.addEventListener(t, ev => { ev.preventDefault(); dz.classList.add('drag'); }));
+['dragleave','drop'].forEach(t => dz.addEventListener(t, ev => { ev.preventDefault(); dz.classList.remove('drag'); }));
+dz.addEventListener('drop', ev => { const f = ev.dataTransfer.files[0]; if(f) handleFile(f); });
+$('reset-btn').addEventListener('click', () => {
+  $('dashboard').hidden = true; $('landing').hidden = false;
+  $('file-input').value = ''; status.textContent = '';
+});
+
+/* ============ DEMO ============ */
+function demoData(){
+  const days = [], nf = [];
+  const start = new Date(); start.setDate(start.getDate() - 365);
+  let seed = 42;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for(let i = 0; i < 365; i++){
+    const d = new Date(start); d.setDate(d.getDate() + i);
+    const raw = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+    const momentum = 1 + i / 365 * 1.2;
+    const spike = rnd() < 0.02 ? 8 + rnd() * 20 : 1;
+    const impressions = Math.round((40 + rnd() * 160) * momentum * spike);
+    const interactions = Math.round(impressions * (0.012 + rnd() * 0.02));
+    days.push({raw, date:d, impressions, interactions});
+    nf.push({raw, value: Math.max(0, Math.round((rnd() * 6 + (spike > 1 ? 25 : 0)) * momentum))});
+  }
+  const posts = [];
+  for(let i = 0; i < 40; i++){
+    const idx = Math.floor(rnd() * 365);
+    posts.push({url:'https://www.linkedin.com/feed/', dateRaw: days[idx].raw, date: days[idx].date,
+      impressions: Math.round(300 + rnd() * rnd() * 9000), interactions: Math.round(10 + rnd() * 120)});
+  }
+  const totalImpr = days.reduce((a,x)=>a+x.impressions,0);
+  return {
+    impressions: totalImpr,
+    reached: Math.round(totalImpr / 4.1),
+    daysSeries: days, newFollowers: nf,
+    totalFollowers: 3200 + nf.reduce((a,x)=>a+x.value,0),
+    posts,
+    audience: {
+      'Nivel de responsabilidad': [
+        {label:'Con experiencia', pct:34},{label:'Gerente', pct:12},{label:'Director', pct:9},
+        {label:'Sin experiencia', pct:18},{label:'Vicepresidente', pct:4}],
+      'Sector': [
+        {label:'Tecnología e internet', pct:14},{label:'Servicios financieros', pct:9},
+        {label:'Consultoría', pct:8},{label:'Educación', pct:6},{label:'Retail', pct:5}],
+      'Ubicación': [
+        {label:'Ciudad de México', pct:12},{label:'Bogotá D.C.', pct:9},{label:'Lima', pct:7},
+        {label:'Santiago', pct:6},{label:'Buenos Aires', pct:6}]
+    },
+    periodLabel: 'Datos de ejemplo · perfil ficticio'
+  };
+}
+$('demo-btn').addEventListener('click', () => {
+  const data = demoData();
+  renderDashboard(data, analyze(data), {name:'Demo'});
+});
+</script>
+
+</body>
+</html>
