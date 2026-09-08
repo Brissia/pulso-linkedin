@@ -336,10 +336,24 @@ gateForm.addEventListener('submit', async (ev)=>{
   if(name.length < 2){ gateErr.textContent = 'Escribe tu nombre para continuar.'; return; }
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ gateErr.textContent = 'Ese correo no parece válido. Revísalo.'; return; }
   gateErr.textContent = '';
-  const lead = {name, email, ts: new Date().toISOString(), _subject: 'Nuevo lead — Pulso LinkedIn'};
+  const lead = {name, email, ts: new Date().toISOString()};
   try{ localStorage.setItem('pulso_lead', JSON.stringify(lead)); }catch(e){}
   if(FORM_ENDPOINT){
-    try{ await fetch(FORM_ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(lead)}); }
+    // _autoresponse: correo automático de FormSubmit al visitante con la
+    // promoción del programa Estrategia de LinkedIn para Ejecutivos.
+    const autoresponse =
+`Hola ${name}, gracias por probar Pulso LinkedIn.
+
+Si ya corriste tu análisis, tienes algo que la mayoría no tiene: un diagnóstico honesto de dónde está tu perfil y qué palancas mover. El siguiente paso es convertir esos números en una estrategia.
+
+Para eso creé el programa Estrategia de LinkedIn para Ejecutivos: un acompañamiento para líderes que quieren que su perfil trabaje para su negocio, con un sistema de posicionamiento, contenido y crecimiento basado en datos, no en intuición.
+
+Si quieres conocer los detalles, escríbeme a brissia.benavente@gmail.com con la palabra PROGRAMA, o mándame un mensaje directo en LinkedIn: https://www.linkedin.com/in/brissiabenavente
+
+Un saludo,
+Brissia Benavente`;
+    const payload = {...lead, _subject: 'Nuevo lead — Pulso LinkedIn', _template: 'table', _autoresponse: autoresponse};
+    try{ await fetch(FORM_ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}); }
     catch(e){ /* sin conexión al endpoint: no bloquea el acceso */ }
   }
   gate.hidden = true;
